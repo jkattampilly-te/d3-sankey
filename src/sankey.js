@@ -1,4 +1,4 @@
-import {max, min, sum} from "d3-array";
+import {max, sum} from "d3-array";
 import {justify} from "./align.js";
 import constant from "./constant.js";
 
@@ -41,12 +41,14 @@ function computeLinkBreadths({nodes}) {
     let y0 = node.y0;
     let y1 = y0;
     for (const link of node.sourceLinks) {
-      link.y0 = y0 + link.width / 2;
-      y0 += link.width;
+      link.sy0 = y0;
+      y0 += link.leftWidth;
+      link.sy1 = y0;
     }
     for (const link of node.targetLinks) {
-      link.y1 = y1 + link.width / 2;
-      y1 += link.width;
+      link.ty0 = y1;
+      y1 += link.rightWidth;
+      link.ty1 = y1;
     }
   }
 }
@@ -146,13 +148,13 @@ export default function Sankey() {
     }
   }
 
-  function computeNodeValues({nodes}) {
-    for (const node of nodes) {
-      node.value = node.fixedValue === undefined
-          ? Math.max(sum(node.sourceLinks, value), sum(node.targetLinks, value))
-          : node.fixedValue;
-    }
-  }
+  // function computeNodeValues({nodes}) {
+  //   for (const node of nodes) {
+  //     node.value = node.fixedValue === undefined
+  //         ? Math.max(sum(node.sourceLinks, value), sum(node.targetLinks, value))
+  //         : node.fixedValue;
+  //   }
+  // }
 
   function computeNodeDepths({nodes}) {
     const n = nodes.length;
@@ -217,7 +219,10 @@ export default function Sankey() {
         node.y1 = y + node.value * ky;
         y = node.y1 + py;
         for (const link of node.sourceLinks) {
-          link.width = link.value * ky;
+          link.leftWidth = link.leftValue * ky;
+        }
+        for (const link of node.targetLinks) {
+          link.rightWidth = link.rightValue * ky;
         }
       }
       y = (y1 - y + py) / (nodes.length + 1);
@@ -340,13 +345,13 @@ export default function Sankey() {
   // Returns the target.y0 that would produce an ideal link from source to target.
   function targetTop(source, target) {
     let y = source.y0 - (source.sourceLinks.length - 1) * py / 2;
-    for (const {target: node, width} of source.sourceLinks) {
+    for (const {target: node, leftWidth} of source.sourceLinks) {
       if (node === target) break;
-      y += width + py;
+      y += leftWidth + py;
     }
-    for (const {source: node, width} of target.targetLinks) {
+    for (const {source: node, rightWidth} of target.targetLinks) {
       if (node === source) break;
-      y -= width;
+      y -= rightWidth;
     }
     return y;
   }
@@ -354,13 +359,13 @@ export default function Sankey() {
   // Returns the source.y0 that would produce an ideal link from source to target.
   function sourceTop(source, target) {
     let y = target.y0 - (target.targetLinks.length - 1) * py / 2;
-    for (const {source: node, width} of target.targetLinks) {
+    for (const {source: node, rightWidth} of target.targetLinks) {
       if (node === source) break;
-      y += width + py;
+      y += rightWidth + py;
     }
-    for (const {target: node, width} of source.sourceLinks) {
+    for (const {target: node, leftWidth} of source.sourceLinks) {
       if (node === target) break;
-      y -= width;
+      y -= leftWidth;
     }
     return y;
   }
