@@ -1,17 +1,8 @@
-// import {linkHorizontal} from "d3-shape";
 import * as d3 from 'd3';
 
-// function horizontalSource(d) {
-//   return [d.source.x1, d.y0];
-// }
-//
-// function horizontalTarget(d) {
-//   return [d.target.x0, d.y1];
-// }
-
+// This function is adopted from Ian Johnson's
+// https://observablehq.com/@enjalot/weird-sankey-links
 function customSankeyLinkPath(link) {
-  // this is a drop in replacement for d3.sankeyLinkHorizontal()
-  // well, without the accessors/options
   const offset = 0;
   let sx = link.source.x1;
   let tx = link.target.x0;
@@ -42,8 +33,5 @@ function customSankeyLinkPath(link) {
 }
 
 export default function() {
-  // return linkHorizontal()
-  //     .source(horizontalSource)
-  //     .target(horizontalTarget);
   return customSankeyLinkPath;
 }
